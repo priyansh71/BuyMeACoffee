@@ -75,7 +75,7 @@ contract BuyMeACoffee {
         return memos;
     }
 
-    function changeOwner(address _newOwner) private {
+    function changeOwner(address payable _newOwner) private {
         require(msg.sender == owner);
         owner = _newOwner;
     }
