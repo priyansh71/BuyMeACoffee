@@ -1,15 +1,4 @@
-# Basic Sample Hardhat Project
+# Buy Me A Coffee De-Fi
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, a sample script that deploys that contract, and an example of a task implementation, which simply lists the available accounts.
-
-Try running some of the following tasks:
-
-```shell
-npx hardhat accounts
-npx hardhat compile
-npx hardhat clean
-npx hardhat test
-npx hardhat node
-node scripts/sample-script.js
-npx hardhat help
-```
+- Smart Contract : https://goerli.etherscan.io/address/0x2B1989B7a4E5723399bBB350B45D12654C2E46A8
+- Hosted at : https://buymeacoffee.priyansh711.repl.co/
