@@ -1,11 +1,22 @@
 /* eslint-disable react/no-unescaped-entities */
-import abi from '../utils/BuyMeACoffee.json';
+import abi from "../utils/BuyMeACoffee.json";
 import { ethers } from "ethers";
-import Head from 'next/head'
+import Head from "next/head";
 import React, { useEffect, useState } from "react";
 import Header from "../components/Header";
-import { Box, Button, Center, Flex, Heading, Input, Text, Textarea, useColorModeValue, VStack } from '@chakra-ui/react';
-import Footer from '../components/Footer';
+import {
+  Box,
+  Button,
+  Center,
+  Flex,
+  Input,
+  Text,
+  Textarea,
+  useColorModeValue,
+  VStack,
+  useToast,
+} from "@chakra-ui/react";
+import Footer from "../components/Footer";
 
 export default function Home() {
   // Contract Address & ABI
@@ -16,58 +27,59 @@ export default function Home() {
   const buttonBg1 = useColorModeValue("red.800", "teal.800");
   const buttonBg2 = useColorModeValue("teal.800", "red.800");
   const buttonBg1Hover = useColorModeValue("red.600", "teal.600");
-   const buttonBg2Hover = useColorModeValue("teal.600", "red.600");
+  const buttonBg2Hover = useColorModeValue("teal.600", "red.600");
 
   // Component state
   const [currentAccount, setCurrentAccount] = useState("");
   const [name, setName] = useState("");
   const [message, setMessage] = useState("");
   const [memos, setMemos] = useState([]);
+  const toast = useToast();
 
   const onNameChange = (event) => {
     setName(event.target.value);
-  }
+  };
 
   const onMessageChange = (event) => {
     setMessage(event.target.value);
-  }
+  };
 
   // Wallet connection logic
   const isWalletConnected = async () => {
     try {
       const { ethereum } = window;
 
-      const accounts = await ethereum.request({ method: 'eth_accounts' })
+      const accounts = await ethereum.request({ method: "eth_accounts" });
       console.log("accounts: ", accounts);
 
       if (accounts.length > 0) {
         const account = accounts[0];
         console.log("Found an authorized account : " + account);
       } else {
-        console.log("Make sure MetaMask is connected");
+        console.log("Make sure MetaMask is connected to the Goerli Network.");
       }
     } catch (error) {
       console.log("error: ", error);
     }
-  }
+  };
 
   const connectWallet = async () => {
     try {
       const { ethereum } = window;
 
       if (!ethereum) {
-        console.log("please install MetaMask");
+        console.log("Please install MetaMask.");
       }
 
       const accounts = await ethereum.request({
-        method: 'eth_requestAccounts'
+        method: "eth_requestAccounts",
       });
 
       setCurrentAccount(accounts[0]);
     } catch (error) {
       console.log(error);
     }
-  }
+  };
 
   const buySmallCoffee = async () => {
     try {
@@ -82,7 +94,7 @@ export default function Home() {
           signer
         );
 
-        console.log("Buying small coffee..")
+        console.log("Buying small coffee..");
         const coffeeTxn = await buyMeACoffee.buyCoffee(
           name ? name : "Anonymous",
           message ? message : "Enjoy your small coffee!",
@@ -95,16 +107,13 @@ export default function Home() {
         setName("");
         setMessage("");
         console.log("Small coffee purchased!");
-
-        // Clear the form fields.
-       
       }
     } catch (error) {
       console.log(error);
     }
   };
 
-    const buyLargeCoffee = async () => {
+  const buyLargeCoffee = async () => {
     try {
       const { ethereum } = window;
 
@@ -117,7 +126,7 @@ export default function Home() {
           signer
         );
 
-        console.log("Buying large coffee..")
+        console.log("Buying large coffee..");
         const coffeeTxn = await buyMeACoffee.buyCoffee(
           name ? name : "Anonymous",
           message ? message : "Enjoy your large coffee!",
@@ -127,18 +136,15 @@ export default function Home() {
         await coffeeTxn.wait();
 
         console.log("Mined with hash as ", coffeeTxn.hash);
-        // Clear the form fields.
         setName("");
         setMessage("");
         console.log("Large coffee purchased!");
-
-        
       }
     } catch (error) {
       console.log(error);
     }
   };
-  
+
   // Function to fetch all memos stored on-chain.
   const getMemos = async () => {
     try {
@@ -159,9 +165,14 @@ export default function Home() {
       } else {
         console.log("Metamask is not connected");
       }
-
     } catch (error) {
       console.log(error);
+      toast({
+        title: "Please recheck the connection with     Goerli.",
+        status: "error",
+        duration: 2000,
+        variant: "subtle",
+      });
     }
   };
 
@@ -180,8 +191,8 @@ export default function Home() {
           address: from,
           timestamp: new Date(timestamp * 1000),
           message,
-          name
-        }
+          name,
+        },
       ]);
     };
 
@@ -191,11 +202,7 @@ export default function Home() {
     if (ethereum) {
       const provider = new ethers.providers.Web3Provider(ethereum, "any");
       const signer = provider.getSigner();
-      buyMeACoffee = new ethers.Contract(
-        contractAddress,
-        contractABI,
-        signer
-      );
+      buyMeACoffee = new ethers.Contract(contractAddress, contractABI, signer);
 
       buyMeACoffee.on("NewMemo", onNewMemo);
     }
@@ -204,193 +211,198 @@ export default function Home() {
       if (buyMeACoffee) {
         buyMeACoffee.off("NewMemo", onNewMemo);
       }
-    }
+    };
   }, []);
 
   return (
     <>
-    <Header />
-    <Flex flexDir="column" justifyContent="center" alignItems="center">
-      <Head>
-        <title>Buy Me A Coffee</title>
-      </Head>
+      <Header />
+      <Flex flexDir="column" justifyContent="center" alignItems="center">
+        <Head>
+          <title>Buy Me A Coffee</title>
+        </Head>
 
-
-      <Box pt="16" pb="10">
-        <Center flexDir="column" my="2">
-          <Text
-            fontFamily="Quicksand"
-            color={useColorModeValue("red.900", "teal.200")}
-            my="2"
-            fontSize="1.5em"
-          >
-            I am Priyansh.
-            <br />I like working with the Web.
-          </Text>
-        </Center>
-
-        {currentAccount ? (
-          <div>
-            <form>
-              <div>
-                <label htmlFor="name">
-                  Name
-                </label>
-                <br />
-
-                <Input
-                  my="2"
-                  id="name"
-                  type="text"
-                  borderColor="gray.300"
-                  focusBorderColor="gray.700"
-                  placeholder="Anonymous"
-                  onChange={onNameChange}
-                />
-              </div>
-              <br />
-              <div>
-                <label htmlFor="message">
-                  Send Priyansh a message.
-                </label>
-                <br />
-
-                <Textarea
-                  my="4"
-                  fontSize="lg"
-                  borderColor="gray.300"
-                  focusBorderColor="gray.700"
-                  spellCheck="false"
-                  placeholder="Enjoy your coffee!"
-                  rows={6}
-                  cols={40}
-                  id="message"
-                  onChange={onMessageChange}
-                  required
-                />
-              </div>
-              <div>
-                <Center>
-                  <Button
-                    onClick={buySmallCoffee}
-                    bg={buttonBg1}
-                    color="white"
-                    _hover={{
-                      bg: buttonBg1Hover,
-                    }}
-                    minW="14vw"
-                    maxW="fit-content"
-                    my="3"
-                    fontSize="1.1em"
-                  >
-                    Send a small coffee for 0.001ETH
-                  </Button>
-                </Center>
-                <Center>
-                  <Button
-                    onClick={buyLargeCoffee}
-                    bg={buttonBg2}
-                    color="white"
-                    _hover={{
-                      bg: buttonBg2Hover,
-                    }}
-                    minW="14vw"
-                    maxW="fit-content"
-                    my="3"
-                    fontSize="1.1em"
-                  >
-                    Send a large coffee for 0.005ETH
-                  </Button>
-                </Center>
-              </div>
-            </form>
-          </div>
-        ) : (
-          <Center>
-            <Button
-              onClick={connectWallet}
-              minW="fit-content"
-              maxW="20vw"
-              fontSize="1.1em"
-              bg="teal"
-              my="5"
-              color="white"
-              _hover={{
-                bg: "teal.400",
-              }}
+        <Box pt="16" pb="10">
+          <Center flexDir="column" my="2">
+            <Text
+              fontFamily="Quicksand"
+              color={useColorModeValue("red.900", "teal.200")}
+              my="2"
+              fontSize="1.5em"
             >
-              Connect Wallet
-            </Button>
+              I am Priyansh.
+              <br />I like working with the Web.
+            </Text>
           </Center>
-        )}
-      </Box>
 
-      {currentAccount && (
-        <Text
-          textAlign="center"
-          className="waves"
-          fontFamily="nunito"
-          fontSize="1.3em"
-          fontWeight="bold"
-        >
-          Memos recieved
-        </Text>
-      )}
+          {currentAccount ? (
+            <div>
+              <form>
+                <div>
+                  <label htmlFor="name" fontFamily="Quicksand">
+                    Name
+                  </label>
+                  <br />
 
-      {currentAccount && (memos.map((memo, idx) => {
-        return (
-          <VStack
-            key={idx}
-            bg={bg}
-            minW="50vw"
-            my="5"
-            color="black"
-            borderRadius="5"
-            fontSize="1em"
-            p="6"
+                  <Input
+                    my="2"
+                    id="name"
+                    type="text"
+                    borderColor="gray.300"
+                    focusBorderColor="gray.700"
+                    placeholder="Anonymous"
+                    fontFamily="Quicksand"
+                    onChange={onNameChange}
+                  />
+                </div>
+                <br />
+                <div>
+                  <label htmlFor="message" fontWeight="500" fontFamily="Nunito">
+                    Send Priyansh a message.
+                  </label>
+                  <br />
+
+                  <Textarea
+                    my="4"
+                    fontSize="lg"
+                    fontFamily="Quicksand"
+                    borderColor="gray.300"
+                    focusBorderColor="gray.700"
+                    spellCheck="false"
+                    placeholder="Enjoy your coffee!"
+                    rows={6}
+                    cols={40}
+                    id="message"
+                    onChange={onMessageChange}
+                    required
+                  />
+                </div>
+                <div>
+                  <Center>
+                    <Button
+                      onClick={buySmallCoffee}
+                      bg={buttonBg1}
+                      color="white"
+                      _hover={{
+                        bg: buttonBg1Hover,
+                      }}
+                      fontFamily="nunito"
+                      minW="14vw"
+                      maxW="fit-content"
+                      my="3"
+                      fontSize="1.1em"
+                    >
+                      Send a small coffee for 0.001ETH
+                    </Button>
+                  </Center>
+                  <Center>
+                    <Button
+                      onClick={buyLargeCoffee}
+                      bg={buttonBg2}
+                      color="white"
+                      _hover={{
+                        bg: buttonBg2Hover,
+                      }}
+                      fontFamily="nunito"
+                      minW="14vw"
+                      maxW="fit-content"
+                      my="3"
+                      fontSize="1.1em"
+                    >
+                      Send a large coffee for 0.005ETH
+                    </Button>
+                  </Center>
+                </div>
+              </form>
+            </div>
+          ) : (
+            <Center>
+              <Button
+                onClick={connectWallet}
+                minW="fit-content"
+                maxW="20vw"
+                fontSize="1.1em"
+                bg="teal"
+                my="5"
+                color="white"
+                fontFamily="nunito"
+                _hover={{
+                  bg: "teal.400",
+                }}
+              >
+                Connect Wallet
+              </Button>
+            </Center>
+          )}
+        </Box>
+
+        {currentAccount && (
+          <Text
+            textAlign="center"
+            className="waves"
             fontFamily="nunito"
-            spacing="4"
+            fontSize="1.3em"
+            fontWeight="bold"
           >
-            <Text>
-              <strong
-                style={{
-                  fontSize: "1em",
-                  padding: "5px",
-                }}
-              >
-                From :
-              </strong>
-              {memo.name}
-            </Text>
-            
-            <Text>
-              <strong
-                style={{
-                  fontSize: "1em",
-                  padding: "5px",
-                }}
-              >
-                Message :
-              </strong>
-              {memo.message}
-            </Text>
-            <Text>
-              <strong
-                style={{
-                  fontSize: "1em",
-                  padding: "5px",
-                }}
-              >
-                Timestamp :
-              </strong>
-              {memo.timestamp.toString()}
-            </Text>
-          </VStack>
-        )
-      }))}
+            Memos recieved
+          </Text>
+        )}
 
-      <Footer />
-    </Flex>
+        {currentAccount &&
+          memos.map((memo, idx) => {
+            return (
+              <VStack
+                key={idx}
+                bg={bg}
+                minW="50vw"
+                my="5"
+                color="black"
+                borderRadius="5"
+                fontSize="1em"
+                p="6"
+                fontFamily="nunito"
+                spacing="4"
+              >
+                <Text>
+                  <strong
+                    style={{
+                      fontSize: "1em",
+                      padding: "5px",
+                    }}
+                  >
+                    From :
+                  </strong>
+                  {memo.name}
+                </Text>
+
+                <Text>
+                  <strong
+                    style={{
+                      fontSize: "1em",
+                      padding: "5px",
+                    }}
+                  >
+                    Message :
+                  </strong>
+                  {memo.message}
+                </Text>
+                <Text>
+                  <strong
+                    style={{
+                      fontSize: "1em",
+                      padding: "5px",
+                    }}
+                  >
+                    Timestamp :
+                  </strong>
+                  {memo.timestamp.toString()}
+                </Text>
+              </VStack>
+            );
+          })}
+
+        <Footer />
+      </Flex>
     </>
-  )
+  );
 }
